@@ -40,6 +40,10 @@ class TestImports(object):
             '{% import "module" as m with context %}{{ m.test() }}{{ m.test_set() }}'
         )
         assert t.render(foo=42) == '[42|23][42|56]'
+        t = test_env.from_string(
+            '{% import "module" as m with context %}{% set sbar=78 %}{{ m.test() }}{{ m.test_set() }}'
+        )
+        assert t.render(foo=42) == '[42|23][42|56]'
         t = test_env.from_string('{% from "module" import test %}{{ test() }}')
         assert t.render(foo=42) == '[|23]'
         t = test_env.from_string(

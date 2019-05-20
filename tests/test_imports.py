@@ -18,7 +18,7 @@ from jinja2.exceptions import TemplateNotFound, TemplatesNotFound, \
 @pytest.fixture
 def test_env():
     env = Environment(loader=DictLoader(dict(
-        module='{% macro test() %}[{{ foo }}|{{ bar }}]{% endmacro %}',
+        module='{% macro test() %}[{{ foo }}|{{ bar }}]{% endmacro %}{% set sbar=56 %}{% macro test_set() %}[{{ foo }}|{{ sbar }}]{% endmacro %}',
         header='[{{ foo }}|{{ 23 }}]',
         o_printer='({{ o }})'
     )))
@@ -30,16 +30,16 @@ def test_env():
 class TestImports(object):
 
     def test_context_imports(self, test_env):
-        t = test_env.from_string('{% import "module" as m %}{{ m.test() }}')
-        assert t.render(foo=42) == '[|23]'
+        t = test_env.from_string('{% import "module" as m %}{{ m.test() }}{{ m.test_set() }}')
+        assert t.render(foo=42) == '[|23][|56]'
         t = test_env.from_string(
-            '{% import "module" as m without context %}{{ m.test() }}'
+            '{% import "module" as m without context %}{{ m.test() }}{{ m.test_set() }}'
         )
-        assert t.render(foo=42) == '[|23]'
+        assert t.render(foo=42) == '[|23][|56]'
         t = test_env.from_string(
-            '{% import "module" as m with context %}{{ m.test() }}'
+            '{% import "module" as m with context %}{{ m.test() }}{{ m.test_set() }}'
         )
-        assert t.render(foo=42) == '[42|23]'
+        assert t.render(foo=42) == '[42|23][42|56]'
         t = test_env.from_string('{% from "module" import test %}{{ test() }}')
         assert t.render(foo=42) == '[|23]'
         t = test_env.from_string(
